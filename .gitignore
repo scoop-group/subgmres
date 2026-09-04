@@ -1,0 +1,14 @@
+# What a reader's own run leaves behind. Everything tracked here is either
+# source or the published results it can be compared against.
+
+# Where run_experiments.sh and the drivers write. The CSVs behind the paper are
+# in results_published/, which is tracked.
+/results/
+
+# Solution fields, written only when a driver is called with --export-solution.
+# The renders themselves are not part of this release.
+/paraview/
+
+# Python bytecode.
+__pycache__/
+*.pyc

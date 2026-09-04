@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+title: subgmres
+abstract: >-
+  GMRES that minimizes the residual in an inner-product norm chosen
+  independently of the preconditioner, and that monitors the norms of the
+  residual's subvectors, each of which may be given its own convergence
+  tolerance. Parallel implementations in MATLAB/Octave and in Python.
+type: software
+message: >-
+  If you use this software in scientific work, please cite the accompanying
+  paper.
+authors:
+  - family-names: Herzog
+    given-names: Roland
+    orcid: https://orcid.org/0000-0003-2164-6575
+    email: roland.herzog@iwr.uni-heidelberg.de
+    affiliation: >-
+      Interdisciplinary Center for Scientific Computing, Heidelberg University,
+      69120 Heidelberg, Germany
+  - family-names: Soodhalter
+    given-names: Kirk M.
+    orcid: https://orcid.org/0000-0003-0612-1199
+    email: ksoodha@maths.tcd.ie
+    affiliation: Trinity College Dublin, The University of Dublin, Ireland
+license: MIT
+repository-code: https://github.com/scoop-group/subgmres
+keywords:
+  - GMRES
+  - Krylov subspace methods
+  - preconditioning
+  - saddle-point problems
+  - residual subvector norms
+# Three fields are added when the first release is tagged and Zenodo has
+# archived it: version, date-released, and doi (the Zenodo concept DOI, which
+# resolves to the most recent version). They are omitted rather than guessed.
+# "unpublished" is accurate rather than provisional: the code is released before
+# the manuscript is submitted. Once it is on arXiv this becomes a preprint entry
+# carrying the arXiv DOI, and later an article entry if it is published.
+preferred-citation:
+  type: unpublished
+  title: A Unified View of Residual Norm Minimizing Krylov Subspace Methods
+  year: 2026
+  authors:
+    - family-names: Herzog
+      given-names: Roland
+      orcid: https://orcid.org/0000-0003-2164-6575
+    - family-names: Soodhalter
+      given-names: Kirk M.
+      orcid: https://orcid.org/0000-0003-0612-1199
