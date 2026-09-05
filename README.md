@@ -189,13 +189,12 @@ release of this code — use its Zenodo record:
 @SOFTWARE{HerzogSoodhalter:2026:2,
   AUTHOR = {Herzog, Roland and Soodhalter, Kirk M.},
   DATE = {2026},
-  DOI = {10.5281/zenodo.XXXXXXX},
+  DOI = {10.5281/zenodo.22334171},
   TITLE = {subgmres. GMRES with residual subvector norms and a configurable inner product},
 }
 ```
 
-<!-- Two placeholders. EPRINT is filled in on arXiv submission; the Zenodo DOI
-     once the first release is archived, here and in CITATION.cff. -->
+<!-- One placeholder left: EPRINT, filled in on arXiv submission. -->
 `EPRINT` is filled in once the manuscript is on arXiv. The `DOI` is Zenodo's
 concept DOI, which always resolves to the most recent release, so the entry does
 not go stale when a later version is archived. `CITATION.cff` carries the same

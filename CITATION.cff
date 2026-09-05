@@ -26,15 +26,15 @@ license: MIT
 repository-code: https://github.com/scoop-group/subgmres
 version: 1.0.0
 date-released: 2026-09-05
+doi: 10.5281/zenodo.22334171
 keywords:
   - GMRES
   - Krylov subspace methods
   - preconditioning
   - saddle-point problems
   - residual subvector norms
-# One field is still missing: doi, the Zenodo CONCEPT DOI, which resolves to the
-# most recent version. It does not exist until Zenodo has archived the first
-# release, so it is left out rather than guessed, and added afterwards.
+# The doi above is Zenodo's CONCEPT DOI: it resolves to the most recent archived
+# version, not to 1.0.0, so it does not need revising at every release.
 # "unpublished" is accurate rather than provisional: the code is released before
 # the manuscript is submitted. Once it is on arXiv this becomes a preprint entry
 # carrying the arXiv DOI, and later an article entry if it is published.
