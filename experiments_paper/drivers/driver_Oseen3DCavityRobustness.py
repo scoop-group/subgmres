@@ -32,8 +32,9 @@ constants and is refactorized at every grid point.
 
 Run inside the Firedrake virtual environment, e.g. locally via Docker:
 
-  docker run --rm -v "$PWD":/work -w /work/src/python \\
-    --user "$(id -u):$(id -g)" -e HOME=/tmp firedrakeproject/firedrake:latest \\
+  docker run --rm -v "$PWD/..":/work -w /work/experiments_paper \\
+    --user "$(id -u):$(id -g)" -e HOME=/tmp \\
+    firedrakeproject/firedrake:2026.4.1 \\
     python3 drivers/driver_Oseen3DCavityRobustness.py --levels 1 2
 """
 
@@ -51,9 +52,14 @@ from subgmres import subgmres
 
 from scipy.sparse.linalg import LinearOperator
 
-# Parameter grid, log-spaced, so that gamma = rho/mu covers 1e-4 ... 1e2 with no
-# cell to exclude. The range is capped at gamma = 1e2 for two independent
-# reasons, which happen to bite at the same place.
+# Parameter grid: the nominal glycerol values times powers of ten, so that the
+# nominal point is one of the cells. The matrices depend on rho only through
+# rho * SPEED (the wind is scaled by the lid speed), and gamma in this comment
+# denotes the effective quotient rho * SPEED / mu, which the first grid (wind
+# not scaled) called rho/mu; the printout below shows rho/mu itself, as the
+# manuscript does. The effective quotient covers 8.9e-5 ... 89 with no cell to
+# exclude. The range is capped near gamma = 1e2 for two independent reasons,
+# which happen to bite at the same place.
 #
 # Physically: gamma is a Reynolds number, and gamma = 1e3 sits at a mesh Peclet
 # number near 70 on level 3, far outside what this discretization resolves.
@@ -81,8 +87,8 @@ from scipy.sparse.linalg import LinearOperator
 # A(mu,rho) = D1 Atilde(gamma) D2 with D1 = blkdiag(mu I, I), D2 = blkdiag(I,
 # (1/mu) I); the grid is nevertheless run in 2D so that the collapse onto the
 # anti-diagonals is something the table shows rather than assumes.
-MU_GRID = [1.0, 1e-1, 1e-2, 1e-3]
-RHO_GRID = [1e-4, 1e-3, 1e-2, 1e-1]
+MU_GRID = [oseen3d_cavity.MU_GLYCEROL * 10.0**k for k in (2, 1, 0, -1)]
+RHO_GRID = [oseen3d_cavity.RHO_GLYCEROL * 10.0**k for k in (-3, -2, -1, 0)]
 
 
 def write_robustness(filename, rows):

@@ -29,6 +29,12 @@ works in, obtained for free rather than imposed.
 import numpy as np
 import scipy.sparse as sp
 
+# Run as a script, e.g. `python3 demos/demo_basic.py` from the python/ directory,
+# a demo sees only its own directory on sys.path; add the one holding subgmres.
+import pathlib
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+
 from subgmres import subgmres
 
 

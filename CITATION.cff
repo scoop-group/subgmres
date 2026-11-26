@@ -24,8 +24,8 @@ authors:
     affiliation: Trinity College Dublin, The University of Dublin, Ireland
 license: MIT
 repository-code: https://github.com/scoop-group/subgmres
-version: 1.0.0
-date-released: 2026-09-05
+version: 1.1.0
+date-released: 2026-11-26
 doi: 10.5281/zenodo.22334171
 keywords:
   - GMRES

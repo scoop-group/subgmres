@@ -5,6 +5,9 @@ Firedrake generation for the Oseen 3D Cavity problem.
 Port of the FEniCS src/python/Oseen3DCavity.py: 3D Oseen driven-cavity flow on
 [-1,1]^3 with Taylor-Hood elements, a rotational wind (zero in z), no-slip on
 five walls, and a driven lid on top (y = 1).
+
+The nominal parameters are those of glycerol at 20 degrees Celsius, in a cavity
+whose lid moves at 1 cm/s; the wind is scaled to the same speed.
 """
 
 import numpy as np
@@ -17,29 +20,36 @@ from firedrake import (
 import vtu
 from firedrake_utils import assemble_oseen_saddle_point
 
+# Glycerol at 20 degrees Celsius: dynamic viscosity in Pa s, density in kg/m^3
+MU_GLYCEROL = 1.41
+RHO_GLYCEROL = 1260.0
+# Lid speed in m/s, which also scales the wind (maximum magnitude 2 * SPEED)
+SPEED = 0.01
 
-def _mesh_and_wind(level):
-	"""The level-`level` mesh and its rotational wind, built identically for the
-	assembly and for the ParaView export, so the dof numbering matches -- it is
-	deterministic for identical construction."""
+
+def _mesh_and_wind(level, speed=SPEED):
+	"""The level-`level` mesh and its rotational wind, scaled by `speed`, built
+	identically for the assembly and for the ParaView export, so the dof
+	numbering matches -- it is deterministic for identical construction."""
 	# FEniCS mesh: BoxMesh([-1,-1,-1],[1,1,1], 4, 4, 4) then refine (level-1)x.
 	ncells = 4 * 2 ** (level - 1)
 	mesh = BoxMesh(ncells, ncells, ncells, 2.0, 2.0, 2.0)
 	mesh.coordinates.dat.data[:] -= 1.0
 	x, y, z = SpatialCoordinate(mesh)
-	wind = as_vector([2 * y * (1 - x * x), -2 * x * (1 - y * y), 0.0])
+	wind = speed * as_vector([2 * y * (1 - x * x), -2 * x * (1 - y * y), 0.0])
 	return mesh, wind
 
 
-def assemble_problem(level, mu=1e-1, rho=1.0):
-	"""Assemble the level-`level` Oseen 3D Cavity system. Returns
-	(K, b, P, M, n, m, x0); see firedrake_utils.assemble_oseen_saddle_point."""
-	mesh, wind = _mesh_and_wind(level)
+def assemble_problem(level, mu=MU_GLYCEROL, rho=RHO_GLYCEROL, speed=SPEED):
+	"""Assemble the level-`level` Oseen 3D Cavity system with lid speed `speed`.
+	Returns (K, b, P, M, n, m, x0); see
+	firedrake_utils.assemble_oseen_saddle_point."""
+	mesh, wind = _mesh_and_wind(level, speed)
 	# BoxMesh markers: 1:x=0, 2:x=Lx, 3:y=0, 4:y=Ly, 5:z=0, 6:z=Lz.
 	# The driven lid (y=1) is marker 4; the other five faces are no-slip.
 	return assemble_oseen_saddle_point(
 		mesh, wind, driven_marker=4, noslip_markers=(1, 2, 3, 5, 6),
-		driven_value=(1.0, 0.0, 0.0), mu_val=mu, rho_val=rho)
+		driven_value=(speed, 0.0, 0.0), mu_val=mu, rho_val=rho)
 
 
 def export_solution(level, x, out_dir, basename="Oseen3DCavity"):

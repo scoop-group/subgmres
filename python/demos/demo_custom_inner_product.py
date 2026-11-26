@@ -15,6 +15,12 @@ norms, which is the only fair way to look at them.
 
 import numpy as np
 
+# Run as a script, e.g. `python3 demos/demo_basic.py` from the python/ directory,
+# a demo sees only its own directory on sys.path; add the one holding subgmres.
+import pathlib
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+
 from subgmres import subgmres
 
 rng = np.random.default_rng(1)

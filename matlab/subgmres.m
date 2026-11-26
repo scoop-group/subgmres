@@ -7,151 +7,162 @@ function [x,flag,Rsubnorms,iter,RsubnormsHIST,XHIST,RHIST,VHIST,WHIST,ZHIST,H,RH
 %	    Subspace Methods (in preparation)
 %
 %   Implemented by Roland Herzog, from a first implementation and the
-%   subvector-monitoring derivation of Kirk M. Soodhalter.
-%   Released under the MIT License; see LICENSE.
-%   If this code is used in a scientific publication, please cite as
+%   subvector-monitoring derivation of Kirk M. Soodhalter. Released
+%   under the MIT License; see LICENSE. If this code is used in a
+%   scientific publication, please cite as
 %
 %     Roland Herzog, Kirk M. Soodhalter:
 %     A Unified View of Residual Norm Minimizing Krylov Subspace Methods
 %
-%   X = SUBGMRES(A,B) attempts to find a solution to the system of linear
-%   equations A*X=B. The N-by-N coefficient matrix A must be non-singular.
-%   The right hand side must be a column vector B of length N.
+%   X = SUBGMRES(A,B) attempts to find a solution to the system of
+%   linear equations A*X=B. The N-by-N coefficient matrix A must be
+%   non-singular. The right hand side must be a column vector B of
+%   length N.
 %
-%   X = SUBGMRES(AFUN,B) accepts a function handle AFUN instead of
-%   the matrix A. AFUN(X) accepts a vector input X and returns the matrix-
-%   vector product A*X. In all of the following, you may replace
-%   A by AFUN.
+%   X = SUBGMRES(AFUN,B) accepts a function handle AFUN instead of the
+%   matrix A. AFUN(X) accepts a vector input X and returns the matrix-
+%   vector product A*X. In all of the following, you may replace A by
+%   AFUN.
 %
-%   X = SUBGMRES(AFUN,B,IX) specifies the subvector indices.
-%   IX can be either a vector or a cell array. If IX is a vector,
-%   then it must contain ascending entries which are interpreted as
-%   the starting indices of the subvectors. If IX is a cell array,
-%   then each entry must contain the indices for one of the subvectors.
-%   Note that the inner product matrix M, when given, must be compatible
-%   with the parititioning into subvectors.
+%   X = SUBGMRES(AFUN,B,IX) specifies the subvector indices. IX can be
+%   either a vector or a cell array. If IX is a vector, then it must
+%   contain ascending entries which are interpreted as the starting
+%   indices of the subvectors. If IX is a cell array, then each entry
+%   must contain the indices for one of the subvectors. Note that the
+%   inner product matrix M, when given, must be compatible with the
+%   parititioning into subvectors.
 %
 %   X = SUBGMRES(A,B,IX,RTOL) specifies the relative tolerance of the
 %   method. If RTOL is [], then SUBGMRES uses the default 1e-6 as a
 %   relative stopping criterion for the total residual norm. The norm
-%   induced by the inverse of the inner product M (see below) is used. If
-%   no inner product is specified, the standard norm is employed. If RTOL
-%   is a single number, then this is interpreted as relative stopping
-%   criterion for the total residual norm. If RTOL is a vector of length
-%   equal to the number of subvectors, then its entries serve componentwise
-%   as relative stopping criteria for the individual subvector norms, all
-%   of which need to be satisfied. If RTOL is a vector of length equal to
-%   the number of subvectors plus one, then in addition to the above the
-%   final entry serves as a relative stopping criterion for the total
-%   residual norm.
+%   induced by the inverse of the inner product M (see below) is used.
+%   If no inner product is specified, the standard norm is employed. If
+%   RTOL is a single number, then this is interpreted as relative
+%   stopping criterion for the total residual norm. If RTOL is a vector
+%   of length equal to the number of subvectors, then its entries serve
+%   componentwise as relative stopping criteria for the individual
+%   subvector norms, all of which need to be satisfied. If RTOL is a
+%   vector of length equal to the number of subvectors plus one, then in
+%   addition to the above the final entry serves as a relative stopping
+%   criterion for the total residual norm.
 %
-%   X = SUBGMRES(A,B,IX,RTOL,ATOL) specifies the absolute
-%   tolerance of the method. The same options as for RTOL apply.
-%   The default is inf.
+%   X = SUBGMRES(A,B,IX,RTOL,ATOL) specifies the absolute tolerance of
+%   the method. The same options as for RTOL apply. The default is inf.
 %
 %   The iteration will stop as soon as the norms of the each subvector
 %   as well as the norm of the full residual vector meet their
 %   respective relative and absolute tolerances simultaneously.
 %
-%   X = SUBGMRES(A,B,IX,RTOL,ATOL,MAXITER) specifies the maximum
-%   number of iterations. If MAXITER is [] then SUBGMRES uses the
-%   default, round(min(N,100)).
+%   X = SUBGMRES(A,B,IX,RTOL,ATOL,MAXITER) specifies the maximum number
+%   of iterations. If MAXITER is [] then SUBGMRES uses the default,
+%   round(min(N,100)).
 %
-%   X = SUBGMRES(A,B,IX,RTOL,ATOL,MAXITER,P) specifies the non-singular P.
-%   If P is [] then a preconditioner is not applied.  P may be a function
-%   handle PFUN of a function returning P\X.
-
-%   X = SUBGMRES(A,B,IX,RTOL,ATOL,MAXITER,P,M) specifies the inner product
-%   (symmetric positive definite) matrix M whose inverse is used to measure
-%   the residual norm and perform the Arnoldi orthogonalization. If M is []
-%   then the standard inner product is used. M may be a function handle
-%   MFUN of a function returning M\X. Note that in case subvector norms are
-%   required, i.e., IX is nontrivial, then M must have block-diagonal
-%   structure, i.e., M must act on each subvector individually.
+%   X = SUBGMRES(A,B,IX,RTOL,ATOL,MAXITER,P) specifies the non-singular
+%   preconditioner P. If P is [] then a preconditioner is not applied. P
+%   enters the iteration only through its inverse: if P is a matrix, the
+%   code solves against it, forming P\X for you; if P is a function
+%   handle PFUN, then PFUN(X) must itself return the inverse action P\X,
+%   not P*X.
 %
-%   X = SUBGMRES(A,B,IX,RTOL,ATOL,MAXITER,P,M,X0) specifies the
-%   initial guess. If X0 is [] then SUBGMRES uses the default, an all
-%   zero vector.
+%   X = SUBGMRES(A,B,IX,RTOL,ATOL,MAXITER,P,M) specifies the inner
+%   product (symmetric positive definite) matrix M whose inverse is used
+%   to measure the residual norm and perform the Arnoldi
+%   orthogonalization. If M is [] then the standard inner product is
+%   used. M enters only through its inverse in the same way as P: a
+%   matrix is solved against, forming M\X, whereas a function handle
+%   MFUN must itself return M\X, not M*X. Note that in case subvector
+%   norms are required, i.e., IX is nontrivial, then M must have
+%   block-diagonal structure, i.e., M must act on each subvector
+%   individually.
 %
-%   X = SUBGMRES(A,B,IX,RTOL,ATOL,MAXITER,P,M,X0,VARARGIN)
-%   specifies further arguments which will be passed to all of AFUN,
-%   PFUN and MFUN, provided that those are functions (not matrices).
+%   X = SUBGMRES(A,B,IX,RTOL,ATOL,MAXITER,P,M,X0) specifies the initial
+%   guess. If X0 is [] then SUBGMRES uses the default, an all zero
+%   vector.
 %
-%   [X,FLAG] = SUBGMRES(A,B,...) also returns a convergence FLAG, following the
-%   convention of MATLAB's built-in GMRES:
+%   X = SUBGMRES(A,B,IX,RTOL,ATOL,MAXITER,P,M,X0,VARARGIN) specifies
+%   further arguments which will be passed to all of AFUN, PFUN and
+%   MFUN, provided that those are functions (not matrices).
+%
+%   [X,FLAG] = SUBGMRES(A,B,...) also returns a convergence FLAG,
+%   following the convention of MATLAB's built-in GMRES:
 %    0 SUBGMRES converged to the desired tolerance within MAXITER iterations.
 %    1 SUBGMRES iterated MAXITER times but did not converge to the desired
 %    tolerance.
-%   Improper use raises an error rather than setting a flag: the inner product M
-%   must be Hermitian positive definite and compatible with the subvector
-%   partition IX, otherwise the errors subgmres:notHermitian or
-%   subgmres:notPositiveDefinite are raised.
-
-%   [X,FLAG,RSUBNORMS] = SUBGMRES(A,B,...) also returns the M-inverse-norm
-%   of the residual subvectors at the final iterate X. This norm is
-%   obtained by a progressive update formula and may be subject to
-%   accumulating rounding error when many iterations are performed. When no
-%   inner product matrix is specified, the standard norm is employed. The
-%   final entry in RSUBNORMS is the total residual norm.
+%   Improper use raises an error rather than setting a flag: the inner
+%   product M must be Hermitian positive definite and compatible with
+%   the subvector partition IX, otherwise the errors
+%   subgmres:notHermitian or subgmres:notPositiveDefinite are raised.
 %
-%   [X,FLAG,RSUBNORMS,ITER] = SUBGMRES(A,B,...) also returns
-%   the number of iterations performed to reach X.
+%   [X,FLAG,RSUBNORMS] = SUBGMRES(A,B,...) also returns the
+%   M-inverse-norm of the residual subvectors at the final iterate X.
+%   This norm is obtained by a progressive update formula and may be
+%   subject to accumulating rounding error when many iterations are
+%   performed. When no inner product matrix is specified, the standard
+%   norm is employed. The final entry in RSUBNORMS is the total residual
+%   norm.
 %
-%   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST] = SUBGMRES(A,B,...) returns the
-%   complete history of the M-inverse-norm of the residual subvectors as
-%   well as of the full residual vector throughout the iterations. The
-%   final column will agree with RSUBNORMS.
+%   [X,FLAG,RSUBNORMS,ITER] = SUBGMRES(A,B,...) also returns the number
+%   of iterations performed to reach X.
+%
+%   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST] = SUBGMRES(A,B,...) returns
+%   the complete history of the M-inverse-norm of the residual
+%   subvectors as well as of the full residual vector throughout the
+%   iterations. The final column will agree with RSUBNORMS.
 %
 %   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST,XHIST] = SUBGMRES(A,B,...)
 %   will return also the entire history of iterates column-wise in the
 %   matrix XHIST.
 %
 %   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST,XHIST,RHIST] = SUBGMRES(A,B,...)
-%   will also return the entire history of residuals column-wise in the matrix
-%   RHIST. Each column is evaluated as B - A*X for the corresponding iterate,
-%   at the price of one extra application of A per iteration. The price is the
-%   point. The residual the recursion carries along is available for nothing,
-%   its M-inverse-norm being the last row of RSUBNORMSHIST, but it is the
-%   recursion's own account of itself; RHIST puts the question to the system
-%   instead, which is what lets it serve as an independent check. In exact
-%   arithmetic the two agree. In floating point they separate as the iteration
-%   converges, by about eps divided by the relative residual reached.
+%   will also return the entire history of residuals column-wise in the
+%   matrix RHIST. Each column is evaluated as B - A*X for the
+%   corresponding iterate, at the price of one extra application of A
+%   per iteration. The price is the point. The residual the recursion
+%   carries along is available for nothing, its M-inverse-norm being the
+%   last row of RSUBNORMSHIST, but it is the recursion's own account of
+%   itself; RHIST puts the question to the system instead, which is what
+%   lets it serve as an independent check. In exact arithmetic the two
+%   agree. In floating point they separate as the iteration converges,
+%   by about eps divided by the relative residual reached.
 %
 %   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST,XHIST,RHIST,VHIST] = SUBGMRES(A,B,...)
-%   will also return the entire basis of the Krylov subspace for the residual
-%   in the matrix VHIST. Its columns are orthonormal with respect to the inv(M)-
-%   inner product.
+%   will also return the entire basis of the Krylov subspace for the
+%   residual in the matrix VHIST. Its columns are orthonormal with
+%   respect to the inv(M)- inner product.
 %
 %   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST,XHIST,RHIST,VHIST,WHIST] = SUBGMRES(A,B,...)
-%   will also return the primal companions of the dual Krylov subspace basis in
-%   the matrix WHIST = M \ VHIST. Its columns are orthonormal with respect to
-%   the inner product induced by M. These vectors are formed by the iteration
-%   anyway: each one is reused in every subsequent orthogonalization, which is
-%   why they are stored rather than recomputed.
+%   will also return the primal companions of the dual Krylov subspace
+%   basis in the matrix WHIST = M \ VHIST. Its columns are orthonormal
+%   with respect to the inner product induced by M. These vectors are
+%   formed by the iteration anyway: each one is reused in every
+%   subsequent orthogonalization, which is why they are stored rather
+%   than recomputed.
 %
 %   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST,XHIST,RHIST,VHIST,WHIST,ZHIST] = SUBGMRES(A,B,...)
-%   will also return the primal Krylov subspace basis in the matrix ZHIST = P \
-%   VHIST. Its columns are orthonormal with respect to the inner product
-%   induced by P'*inv(M)'*P. Unlike WHIST, these vectors are consumed
-%   immediately by the iteration and are stored only when requested here.
+%   will also return the primal Krylov subspace basis in the matrix
+%   ZHIST = P \ VHIST. Its columns are orthonormal with respect to the
+%   inner product induced by P'*inv(M)'*P. Unlike WHIST, these vectors
+%   are consumed immediately by the iteration and are stored only when
+%   requested here.
 %
 %   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST,XHIST,RHIST,VHIST,WHIST,ZHIST,H] = SUBGMRES(A,B,...)
-%   will return also the upper Hessenberg matrix H arising from the Arnoldi
-%   process.
+%   will return also the upper Hessenberg matrix H arising from the
+%   Arnoldi process.
 %
 %   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST,XHIST,RHIST,VHIST,WHIST,ZHIST,H,RH] = SUBGMRES(A,B,...)
-%   will return also the upper triangular factor RH of H arising from the QR
-%   factorization.
+%   will return also the upper triangular factor RH of H arising from
+%   the QR factorization.
 %
 %   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST,XHIST,RHIST,VHIST,WHIST,ZHIST,H,RH,TOLTABLE] = SUBGMRES(A,B,...)
 %   returns also the relative tolerances (first columns) and absolute
 %   tolerances (second column) that were in effect for the present run.
-%   The rows pertain to the subvectors and total vector norms, respectively.
-%   This feature helps the user verify the requested convergence tolerances.
+%   The rows pertain to the subvectors and total vector norms,
+%   respectively. This feature helps the user verify the requested
+%   convergence tolerances.
 %
 %   [X,FLAG,RSUBNORMS,ITER,RSUBNORMSHIST,XHIST,RHIST,VHIST,WHIST,ZHIST,H,RH,TOLTABLE,IX] = SUBGMRES(A,B,...)
-%   returns also the cell array ix of indices pertaining to the subvectors.
-%   In case of no subvectors, ix will be 1:N.
+%   returns also the cell array ix of indices pertaining to the
+%   subvectors. In case of no subvectors, ix will be 1:N.
 
 %% Parse the output arguments.
 % Decide which of the optional history outputs the caller actually wants, so

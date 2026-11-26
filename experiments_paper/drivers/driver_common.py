@@ -84,29 +84,37 @@ def _metric_solver(M_block):
 
 
 def write_robustness_equivalence(long_csv, out_csv):
-	"""Pivot the robustness sweep into the shape its manuscript table has:
-	one row per viscosity, one column per mesh level, holding the ratio
-	C/c of the equivalence constants averaged over the four densities.
+	"""Pivot the robustness sweep into the shape its manuscript table has, the
+	same as that of the two iteration-count tables: one line per (rho, mu)
+	cell, densities ascending and viscosities descending within each density,
+	holding the ratio C/c of the equivalence constants on each mesh level.
 
-	The averaging is legitimate because the ratio turns out not to depend on
-	rho -- across the four values at fixed mu it varies by about 15% -- so the
-	table reports mu against the level rather than repeating four near-equal
-	columns. Written so that the table can be read from a file at compile time,
-	like the other two equivalence tables, rather than transcribed by hand: the
-	hand-written version silently kept squared values through a change of
-	convention.
+	The ratio hardly depends on rho, so a table of mu against the level used to
+	suffice, first averaged over rho and then taken at the nominal density.
+	With the glycerol-centered grid one cell breaks that pattern: the
+	convection-dominated corner (smallest mu, largest rho) gives about half the
+	ratio of its column on levels 2 and 3, and the value at the nominal density
+	would have shown only that cell. The full grid shows both, and its nominal
+	cell coincides with the main experiment. Written so that the table can be
+	read from a file at compile time, like the other two equivalence tables,
+	rather than transcribed by hand: the hand-written version silently kept
+	squared values through a change of convention.
 	"""
 	d = np.genfromtxt(long_csv, delimiter=",", names=True)
+	rhos = sorted(set(d["rho"]))
 	mus = sorted(set(d["mu"]), reverse=True)
 	levels = sorted(set(d["level"].astype(int)))
 	with open(out_csv, "w") as f:
-		f.write("mu," + ",".join("level%d" % lv for lv in levels) + "\n")
-		for mu in mus:
-			vals = []
-			for lv in levels:
-				m = (d["level"] == lv) & (d["mu"] == mu)
-				vals.append(float(np.mean(d["C"][m] / d["c"][m])))
-			f.write("%.6e," % mu + ",".join("%.6e" % v for v in vals) + "\n")
+		f.write("rho,mu," + ",".join("level%d" % lv for lv in levels) + "\n")
+		for rho in rhos:
+			for mu in mus:
+				vals = []
+				for lv in levels:
+					# The one grid point at this level, density and viscosity
+					m = (d["level"] == lv) & (d["rho"] == rho) & (d["mu"] == mu)
+					assert np.count_nonzero(m) == 1, (lv, rho, mu)
+					vals.append(float(d["C"][m][0] / d["c"][m][0]))
+				f.write("%.6e,%.6e," % (rho, mu) + ",".join("%.6e" % v for v in vals) + "\n")
 	return out_csv
 
 

@@ -35,7 +35,8 @@ addition to a joint one. The norms fall out of the Givens recursion at no extra
 cost: no residual vector is formed to obtain them.
 
 The `subgmres` solver exists in MATLAB/Octave and Python implementations. The
-two take the same arguments and return the same quantities.
+two take the same arguments and return the same results, including the
+subvector norms.
 
 ## What is here
 
@@ -89,11 +90,13 @@ Both report flag 0 after 13 iterations, and agree on `x` to a few units in
 the last place.
 
 `A`, and the optional `P` and `M`, may each be given as a dense or sparse
-matrix, as a function, or — in Python — as a `LinearOperator`. One asymmetry is
-worth knowing before you go further: `A` is applied forward, but a *matrix* `P`
-or `M` is solved against for you, while a *function* must return the inverse
-action itself — `P \ x`, not `P * x`. Getting that backwards raises no error;
-the iteration merely stops converging.
+matrix, as a function, or — in Python — as a `LinearOperator`. They do not enter
+the iteration the same way, which is worth knowing before you go further. `A` is
+applied forward. `P` and `M` enter only through their inverses: given a matrix,
+the code solves against it for you (`P \ x` in MATLAB); given a function, the
+function must itself deliver that inverse action, returning `P \ x` rather than
+`P * x`. Getting that backwards raises no error; the iteration merely stops
+converging.
 
 Everything beyond this call — a partition of the unknowns and a tolerance for
 each block, a non-standard inner product, a preconditioner, restarts — is shown
@@ -165,7 +168,7 @@ the residual over the affine Krylov space it was drawn from.
 
 | | |
 |---|---|
-| MATLAB implementation | MATLAB (tested on R2021a) or Octave (tested on 8.4.0) |
+| MATLAB implementation | MATLAB (tested on R2026a) or Octave (tested on 8.4.0) |
 | Python implementation | NumPy and SciPy (tested on Python 3.12.3, NumPy 1.26.4, SciPy 1.11.4) |
 | Python implementation, optional | [`pypardiso`](https://github.com/haasad/PyPardiso), `pip install pypardiso`. A real sparse `P` or `M` is factorized once; with `pypardiso` that factorization uses MKL PARDISO in parallel, otherwise SciPy's SuperLU, serially. |
 | The paper's experiments | Firedrake; see [`experiments_paper/INSTALL.md`](experiments_paper/INSTALL.md) |

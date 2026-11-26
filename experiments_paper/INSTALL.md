@@ -8,7 +8,7 @@ is assembled in memory.
 | Driver | Problem |
 |---|---|
 | `driver_Oseen3DCavity` | Oseen equations, three-dimensional lid-driven cavity (a saddle-point system) |
-| `driver_Oseen3DCavityRobustness` | the same cavity, swept over a grid of viscosity and reaction parameters |
+| `driver_Oseen3DCavityRobustness` | the same cavity, swept over a grid of viscosities and densities |
 | `driver_Helmholtz2D` | Helmholtz equation, two-dimensional, complex-valued |
 
 The drivers need [Firedrake](https://www.firedrakeproject.org/) to assemble
