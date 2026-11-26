@@ -1,6 +1,6 @@
 # subgmres
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22334171.svg)](https://doi.org/10.5281/zenodo.22334171)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22334170.svg)](https://doi.org/10.5281/zenodo.22334170)
 
 GMRES that solves real or complex linear systems `A x = b` by minimizing the
 residual in a norm you choose, and reports the norms of the residual's
@@ -194,7 +194,7 @@ release of this code — use its Zenodo record:
 @SOFTWARE{HerzogSoodhalter:2026:2,
   AUTHOR = {Herzog, Roland and Soodhalter, Kirk M.},
   DATE = {2026},
-  DOI = {10.5281/zenodo.22334171},
+  DOI = {10.5281/zenodo.22334170},
   TITLE = {subgmres. GMRES with residual subvector norms and a configurable inner product},
 }
 ```
